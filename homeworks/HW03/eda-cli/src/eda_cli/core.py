@@ -185,6 +185,24 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame) -> 
     flags["max_missing_share"] = max_missing_share
     flags["too_many_missing"] = max_missing_share > 0.5
 
+    # Проверка на наличие константных колонок
+    flags["has_constant_columns"] = (summary["unique"] == 1).any()
+    if flags["has_constant_columns"]:
+        constant_columns = summary.loc[summary["unique"] == 1, "name"].tolist()
+        flags["constant_columns_list"] = constant_columns
+    
+    # Проверка на категориальные признаки со слишком большим числом уникальных значений
+    high_cardinality_mask = ((summary["is_numeric"] == False) 
+                                                   & (summary["unique"] > 0.8*summary["non_null"]))
+    flags['has_high_cardinality_categoricals']  = high_cardinality_mask.any()
+    if flags["has_high_cardinality_categoricals"]:
+        high_cardinality_columns = summary.loc[high_cardinality_mask, "name"].tolist()
+        flags["high_cardinality_categoricals_list"] = high_cardinality_columns
+    
+    # Проверка, что идентификатор (например, `user_id`) уникален
+    id_duplucates_mask = ('id' in summary["name"] & summary["unique"] != summary["unique"])
+    flags['has_suspicious_id_duplicates'] = id_duplucates_mask.any()
+
     # Простейший «скор» качества
     score = 1.0
     score -= max_missing_share  # чем больше пропусков, тем хуже
