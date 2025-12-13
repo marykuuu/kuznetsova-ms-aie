@@ -206,9 +206,11 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame) -> 
     # Простейший «скор» качества
     score = 1.0
     score -= max_missing_share  # чем больше пропусков, тем хуже
-    if summary.n_rows < 100:
+    if flags["too_few_rows"]:
         score -= 0.2
-    if summary.n_cols > 100:
+    if flags["too_many_columns"]:
+        score -= 0.1
+    if flags['has_suspicious_id_duplicates']:
         score -= 0.1
 
     score = max(0.0, min(1.0, score))
