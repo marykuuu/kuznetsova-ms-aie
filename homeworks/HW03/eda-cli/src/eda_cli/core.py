@@ -188,7 +188,7 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame, max
     df_summary = flatten_summary_for_print(summary)
 
     # Проверка на наличие константных колонок
-    flags["has_constant_columns"] = (df_summary["unique"] == 1).any()
+    flags["has_constant_columns"] = bool((df_summary["unique"] == 1).any())
     if flags["has_constant_columns"]:
         constant_columns = df_summary.loc[df_summary["unique"] == 1, "name"].tolist()
         flags["constant_columns_list"] = constant_columns
@@ -196,7 +196,7 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame, max
     # Проверка на категориальные признаки со слишком большим числом уникальных значений
     high_cardinality_mask = ((df_summary["is_numeric"] == False) 
                                                    & (df_summary["unique"] > 0.9*summary.n_rows))
-    flags['has_high_cardinality_categoricals']  = high_cardinality_mask.any()
+    flags['has_high_cardinality_categoricals']  = bool(high_cardinality_mask.any())
     if flags["has_high_cardinality_categoricals"]:
         high_cardinality_columns = df_summary.loc[high_cardinality_mask, "name"].tolist()
         flags["high_cardinality_categoricals_list"] = high_cardinality_columns
@@ -204,11 +204,11 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame, max
     # Проверка, что идентификатор (например, `user_id`) уникален
     id_mask = df_summary["name"].str.contains('id', case=False, na=False)
     id_duplicates_mask = id_mask & (df_summary["unique"] != summary.n_rows)
-    flags['has_suspicious_id_duplicates'] = id_duplicates_mask.any()
+    flags['has_suspicious_id_duplicates'] = bool(id_duplicates_mask.any())
 
     # Простейший «скор» качества
     score = 1.0
-    score -= max_missing_share  # чем больше пропусков, тем хуже
+    score -= df_max_missing_share  # чем больше пропусков, тем хуже
     if flags["too_few_rows"]:
         score -= 0.2
     if flags["too_many_columns"]:
