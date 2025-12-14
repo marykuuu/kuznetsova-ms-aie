@@ -111,13 +111,13 @@ def report(
         f.write(f"- Макс. доля пропусков по колонке: **{quality_flags['max_missing_share']:.2%}**\n")
         f.write(f"- Слишком мало строк: **{quality_flags['too_few_rows']}**\n")
         f.write(f"- Слишком много колонок: **{quality_flags['too_many_columns']}**\n")
-        f.write(f"- Слишком много пропусков: **{quality_flags['too_many_missing']}**\n\n")
-        f.write(f"- Наличие константных колонок: **{quality_flags['has_constant_columns']}**\n\n")
+        f.write(f"- Слишком много пропусков: **{quality_flags['too_many_missing']}**\n")
+        f.write(f"- Наличие константных колонок: **{quality_flags['has_constant_columns']}**\n")
         if quality_flags['has_constant_columns']:
-            f.write(f"- Константных колонки: **{quality_flags['constant_columns_list']}**\n\n")
-        f.write(f"- Категориальные признаки со слишком большим числом уникальных значений: **{quality_flags['has_high_cardinality_categoricals']}**\n\n")
+            f.write(f"- Константных колонки: **{quality_flags['constant_columns_list']}**\n")
+        f.write(f"- Категориальные признаки со слишком большим числом уникальных значений: **{quality_flags['has_high_cardinality_categoricals']}**\n")
         if quality_flags['has_high_cardinality_categoricals']:
-            f.write(f"- Обратите внимание на колонки: **{quality_flags['high_cardinality_categoricals_list']}**\n\n")
+            f.write(f"- Обратите внимание на колонки: **{quality_flags['high_cardinality_categoricals_list']}**\n")
         f.write(f"- Идентификаторы (id) не уникальны: **{quality_flags['has_suspicious_id_duplicates']}**\n\n")
 
         f.write("## Колонки\n\n")
