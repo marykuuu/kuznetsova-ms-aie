@@ -1,4 +1,4 @@
-# S03 – eda_cli: мини-EDA для CSV
+# HW03 – eda_cli: мини-EDA для CSV
 
 Небольшое CLI-приложение для базового анализа CSV-файлов.
 Используется в рамках Семинара 03 курса «Инженерия ИИ».
@@ -10,7 +10,7 @@
 
 ## Инициализация проекта
 
-В корне проекта (S03):
+В корне проекта (HW03/eda-cli):
 
 ```bash
 uv sync
@@ -27,8 +27,13 @@ uv sync
 ### Краткий обзор
 
 ```bash
-uv run eda-cli overview data/example.csv
+uv run eda-cli overview data/example.csv --sep ',' --encoding 'utf-8'
 ```
+
+Аргументы:
+
+- `path` – путь к CSV-файлу.
+
 
 Параметры:
 
@@ -38,8 +43,25 @@ uv run eda-cli overview data/example.csv
 ### Полный EDA-отчёт
 
 ```bash
-uv run eda-cli report data/example.csv --out-dir reports
+uv run eda-cli report data/example.csv --out-dir reports --sep ',' --encoding 'utf-8' --max-hist-columns 6 --title "EDA-отчёт" --top-k-categories 3 --max-missing-share 0.5
 ```
+
+
+Аргументы:
+
+- `path` – путь к CSV-файлу.
+
+
+Параметры:
+
+- `--out-dir` – аталог для отчёта (по умолчанию `reports`);
+- `--sep` – разделитель в CSV (по умолчанию `,`);
+- `--encoding` – кодировка (по умолчанию `utf-8`);
+- `--max-hist-columns` – максимум числовых колонок для гистограмм (по умолчанию 6);
+- `--title` – заголовок EDA-отчёта (по умолчанию `EDA-отчёт`);
+- `--top-k-categories` – сколько top-значений выводить для категориальных признаков (по умолчанию 3);
+- `--max-missing-share` – порог доли пропусков, выше которого колонка считается проблемной (по умолчанию 0.5).
+
 
 В результате в каталоге `reports/` появятся:
 

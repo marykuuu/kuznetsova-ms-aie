@@ -59,3 +59,48 @@ def test_correlation_and_top_categories():
     city_table = top_cats["city"]
     assert "value" in city_table.columns
     assert len(city_table) <= 2
+
+
+def test_has_constant_columns_flag():
+    df = pd.DataFrame(
+        {
+            "age": [10, 10, 10, 10],
+            "height": [140, 150, 160, 170],
+            "city": ["A", "A", "A", "A"],
+        }
+    )
+    missing_df = missing_table(df)
+    summary = summarize_dataset(df)
+    flags = compute_quality_flags(summary, missing_df)
+    assert flags["has_constant_columns"] == True
+    assert flags["constant_columns_list"] == ["age", "city"]
+
+
+def test_has_high_cardinality_categoricals_flag():
+    df = pd.DataFrame(
+        {
+            "age": [10, 20, 25, 15],
+            "height": [140, 150, 160, 170],
+            "city": ["A", "B", "C", "D"],
+        }
+    )
+    missing_df = missing_table(df)
+    summary = summarize_dataset(df)
+    flags = compute_quality_flags(summary, missing_df)
+    assert flags['has_high_cardinality_categoricals'] == True
+    assert flags["high_cardinality_categoricals_list"] == ["city"]
+
+
+def test_has_suspicious_id_duplicates_flag():
+    df = pd.DataFrame(
+        {
+            "user_id": [1, 1, 1, 1],
+            "age": [10, 20, 25, 15],
+            "height": [140, 150, 160, 170],
+            "city": ["A", "B", "C", "D"],
+        }
+    )
+    missing_df = missing_table(df)
+    summary = summarize_dataset(df)
+    flags = compute_quality_flags(summary, missing_df)
+    assert flags['has_suspicious_id_duplicates'] == True

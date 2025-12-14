@@ -154,7 +154,7 @@ def top_categories(
 
     for name in candidate_cols[:max_columns]:
         s = df[name]
-        vc = s.value_counts(dropna=True).head(top_k)
+        vc = s.value_counts(dropna=True).head(top_k-1)
         if vc.empty:
             continue
         share = vc / vc.sum()
@@ -169,27 +169,7 @@ def top_categories(
 
     return result
 
-# Преобразование таблицы из типа DatasetSummary к типу DataFrame
-def datasetsummary_to_dataframe(summary: DatasetSummary):
-    df_summary = [] 
-    for col in summary.columns:
-        df_summary.append({
-            "name": col.name,
-            "dtype": col.dtype,
-            "non_null": col.non_null,
-            "missing": col.missing,
-            "missing_share": col.missing_share,
-            "unique": col.unique,
-            "is_numeric": col.is_numeric,
-            "min": col.min,
-            "max": col.max,
-            "mean": col.mean,
-            "std": col.std
-        })
-    summary_df = pd.DataFrame(df_summary)
-    return summary_df
-
-def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame) -> Dict[str, Any]:
+def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame, max_missing_share:float=0.5) -> Dict[str, Any]:
     """
     Простейшие эвристики «качества» данных:
     - слишком много пропусков;
@@ -200,11 +180,12 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame) -> 
     flags["too_few_rows"] = summary.n_rows < 100
     flags["too_many_columns"] = summary.n_cols > 100
 
-    max_missing_share = float(missing_df["missing_share"].max()) if not missing_df.empty else 0.0
-    flags["max_missing_share"] = max_missing_share
-    flags["too_many_missing"] = max_missing_share > 0.5
+    df_max_missing_share = float(missing_df["missing_share"].max()) if not missing_df.empty else 0.0
+    flags["max_missing_share"] = df_max_missing_share
+    flags["too_many_missing"] = df_max_missing_share > max_missing_share
+    flags["too_many_missing_col_list"] = missing_df[missing_df["missing_share"] > max_missing_share].index.tolist()
 
-    df_summary = datasetsummary_to_dataframe(summary)
+    df_summary = flatten_summary_for_print(summary)
 
     # Проверка на наличие константных колонок
     flags["has_constant_columns"] = (df_summary["unique"] == 1).any()
@@ -213,8 +194,8 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame) -> 
         flags["constant_columns_list"] = constant_columns
     
     # Проверка на категориальные признаки со слишком большим числом уникальных значений
-    high_cardinality_mask = ((df_summary["is_numeric"] == "False") 
-                                                   & (df_summary["unique"] > 0.8*df_summary["non_null"]))
+    high_cardinality_mask = ((df_summary["is_numeric"] == False) 
+                                                   & (df_summary["unique"] > 0.9*summary.n_rows))
     flags['has_high_cardinality_categoricals']  = high_cardinality_mask.any()
     if flags["has_high_cardinality_categoricals"]:
         high_cardinality_columns = df_summary.loc[high_cardinality_mask, "name"].tolist()
@@ -234,6 +215,10 @@ def compute_quality_flags(summary: DatasetSummary, missing_df: pd.DataFrame) -> 
         score -= 0.1
     if flags['has_suspicious_id_duplicates']:
         score -= 0.1
+    if flags['has_high_cardinality_categoricals']:
+        score -= 0.05*len(flags["high_cardinality_categoricals_list"])
+    if flags['has_constant_columns']:
+        score -= 0.05*len(flags["constant_columns_list"])
 
     score = max(0.0, min(1.0, score))
     flags["quality_score"] = score

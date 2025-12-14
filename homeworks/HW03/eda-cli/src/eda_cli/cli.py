@@ -67,6 +67,9 @@ def report(
     sep: str = typer.Option(",", help="Разделитель в CSV."),
     encoding: str = typer.Option("utf-8", help="Кодировка файла."),
     max_hist_columns: int = typer.Option(6, help="Максимум числовых колонок для гистограмм."),
+    title: str = typer.Option("EDA-отчёт", help="Заголовок EDA-отчёта."),
+    top_k_categories: int = typer.Option(3, help="Cколько top-значений выводить для категориальных признаков."),
+    max_missing_share: float = typer.Option(0.5, help="Порог доли пропусков, выше которого колонка считается проблемной."),
 ) -> None:
     """
     Сгенерировать полный EDA-отчёт:
@@ -86,10 +89,10 @@ def report(
     summary_df = flatten_summary_for_print(summary)
     missing_df = missing_table(df)
     corr_df = correlation_matrix(df)
-    top_cats = top_categories(df)
+    top_cats = top_categories(df, top_k=top_k_categories)
 
     # 2. Качество в целом
-    quality_flags = compute_quality_flags(summary, missing_df)
+    quality_flags = compute_quality_flags(summary, missing_df, max_missing_share)
 
     # 3. Сохраняем табличные артефакты
     summary_df.to_csv(out_root / "summary.csv", index=False)
@@ -102,7 +105,7 @@ def report(
     # 4. Markdown-отчёт
     md_path = out_root / "report.md"
     with md_path.open("w", encoding="utf-8") as f:
-        f.write(f"# EDA-отчёт\n\n")
+        f.write(f"# {title}\n\n")
         f.write(f"Исходный файл: `{Path(path).name}`\n\n")
         f.write(f"Строк: **{summary.n_rows}**, столбцов: **{summary.n_cols}**\n\n")
 
@@ -112,6 +115,8 @@ def report(
         f.write(f"- Слишком мало строк: **{quality_flags['too_few_rows']}**\n")
         f.write(f"- Слишком много колонок: **{quality_flags['too_many_columns']}**\n")
         f.write(f"- Слишком много пропусков: **{quality_flags['too_many_missing']}**\n")
+        if quality_flags['too_many_missing_col_list']:
+            f.write(f"- Колонки, первышающие максимальный порог доли пропусков {max_missing_share}: **{quality_flags['too_many_missing_col_list']}**\n")
         f.write(f"- Наличие константных колонок: **{quality_flags['has_constant_columns']}**\n")
         if quality_flags['has_constant_columns']:
             f.write(f"- Константных колонки: **{quality_flags['constant_columns_list']}**\n")
@@ -136,12 +141,14 @@ def report(
             f.write("См. `correlation.csv` и `correlation_heatmap.png`.\n\n")
 
         f.write("## Категориальные признаки\n\n")
+        f.write(f"- Количество top-значений: **{top_k_categories}**\n")
         if not top_cats:
             f.write("Категориальные/строковые признаки не найдены.\n\n")
         else:
             f.write("См. файлы в папке `top_categories/`.\n\n")
 
         f.write("## Гистограммы числовых колонок\n\n")
+        f.write(f"- Максимум числовых колонок для гистограмм: **{max_hist_columns}**\n")
         f.write("См. файлы `hist_*.png`.\n")
 
     # 5. Картинки
