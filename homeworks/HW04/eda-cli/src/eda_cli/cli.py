@@ -115,7 +115,7 @@ def report(
         f.write(f"- Слишком мало строк: **{quality_flags['too_few_rows']}**\n")
         f.write(f"- Слишком много колонок: **{quality_flags['too_many_columns']}**\n")
         f.write(f"- Слишком много пропусков: **{quality_flags['too_many_missing']}**\n")
-        if quality_flags['too_many_missing_col_list']:
+        if quality_flags['too_many_missing']:
             f.write(f"- Колонки, первышающие максимальный порог доли пропусков {max_missing_share}: **{quality_flags['too_many_missing_col_list']}**\n")
         f.write(f"- Наличие константных колонок: **{quality_flags['has_constant_columns']}**\n")
         if quality_flags['has_constant_columns']:
