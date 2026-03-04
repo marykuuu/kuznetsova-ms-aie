@@ -1,0 +1,34 @@
+{
+    "experiment_id": "E4",
+    "dataset": "CIFAR10",
+    "seed": 42,
+    "model_config": {
+        "input_dim": 3072,
+        "hidden_dims": [
+            512,
+            256,
+            128
+        ],
+        "num_classes": 10,
+        "activation": "relu",
+        "dropout_p": 0.0,
+        "use_batchnorm": true
+    },
+    "training_config": {
+        "optimizer": "Adam",
+        "lr": 0.001,
+        "weight_decay": 0.0,
+        "momentum": null,
+        "batch_size": 128,
+        "early_stopping_patience": 4,
+        "early_stopping_min_delta": 0.001,
+        "max_epochs": 50,
+        "epochs_trained": 9
+    },
+    "results": {
+        "best_val_accuracy": 0.5423310661720018,
+        "best_val_loss": 1.9020925093505343,
+        "test_accuracy": 0.5317444620253164,
+        "test_loss": 2.1350115809259536
+    }
+}
