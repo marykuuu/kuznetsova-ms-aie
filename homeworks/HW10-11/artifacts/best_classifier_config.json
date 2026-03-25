@@ -1,0 +1,42 @@
+{
+    "experiment": "C4",
+    "dataset": "STL10",
+    "architecture": "ResNet18",
+    "model_summary": "ResNet18_pretrained_finetune_11,181,642params",
+    "transforms": {
+        "train": [
+            "Resize(256)",
+            "RandomResizedCrop(224, scale=(0.8, 1.0))",
+            "RandomHorizontalFlip(p=0.5)",
+            "ToTensor()",
+            "Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))"
+        ],
+        "val_test": [
+            "Resize(256)",
+            "CenterCrop(224)",
+            "ToTensor()",
+            "Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))"
+        ]
+    },
+    "hyperparameters": {
+        "optimizer": "Adam",
+        "learning_rate": {
+            "layer4": 0.0001,
+            "fc": 0.001
+        },
+        "weight_decay": 0.0001,
+        "batch_size": 64,
+        "epochs": 10,
+        "seed": 42
+    },
+    "augmentation": true,
+    "pretrained": true,
+    "pretrained_weights": "ImageNet1K_V1",
+    "transfer_learning": "partial_finetune",
+    "unfrozen_layers": [
+        "layer4",
+        "fc"
+    ],
+    "best_val_accuracy": 0.855,
+    "test_accuracy": 0.855375
+}
