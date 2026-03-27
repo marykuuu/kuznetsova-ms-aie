@@ -1,0 +1,19 @@
+{
+    "experiment_id": "R1",
+    "dataset": "S12-hw-dataset.csv",
+    "seed": 42,
+    "model": "GRU",
+    "optimizer": "Adam",
+    "lr": 0.001,
+    "window_size": 28,
+    "batch_size": 64,
+    "epochs_trained": 12,
+    "hidden size": 48,
+    "scaler": "StandardScaler",
+    "best_val_mae": 5.7730326652526855,
+    "best_val_rmse": 7.4405031952867455,
+    "best_val_mape": 3.893465518951416,
+    "test_mae": 7.017683506011963,
+    "test_rmse": 8.86446087965939,
+    "test_mape": 4.50993013381958
+}
