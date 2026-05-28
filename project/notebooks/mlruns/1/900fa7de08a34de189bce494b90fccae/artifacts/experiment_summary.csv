@@ -1,0 +1,6 @@
+model,silhouette,davies_bouldin,calinski_harabasz,params
+KMeans_Default_k4,0.293751155045553,1.3647184056015742,3031.9682281831474,{'n_clusters': 4}
+AE_KMeans_Default_k4,0.29054075479507446,1.239725298902414,3889.657742971086,"{'n_clusters': 4, 'type': 'Autoencoder'}"
+KMeans_Tuned,0.3093353780705341,1.2136103150059232,3020.541924611946,"{'init': 'k-means++', 'n_clusters': 5, 'n_init': 10}"
+DBSCAN_Best,0.26872254388322736,1.4288734056444183,967.6476301297585,"{'eps': 1.0, 'min_samples': 15}"
+Agglomerative_Ward,0.2762958269072885,1.3045072526715829,2648.790765145038,"{'n_clusters': 5, 'linkage': 'ward'}"

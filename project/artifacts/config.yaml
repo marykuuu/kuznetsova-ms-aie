@@ -1,0 +1,18 @@
+features:
+- PURCHASES
+- CASH_ADVANCE
+- INSTALLMENTS_PURCHASES
+- PURCHASES_FREQUENCY
+- CASH_ADVANCE_FREQUENCY
+- PRC_FULL_PAYMENT
+- CREDIT_LIMIT
+- TENURE
+metrics:
+  calinski_harabasz: 3020.541924611946
+  davies_bouldin: 1.2136103150059232
+  silhouette: 0.3093353780705341
+model_type: KMeans_Tuned
+parameters:
+  init: k-means++
+  n_clusters: 5
+  n_init: 10
