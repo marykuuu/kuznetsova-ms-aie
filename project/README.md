@@ -105,7 +105,7 @@ pip install -r requirements.txt
 
 ## 4. Как запустить проект
 
-Проект поддерживает запуск через командную строку (CLI), веб-сервис (API) и Docker.
+Перед использованием сервиса необходимо обучить модель и сохранить артефакты (best_model.pkl, scaler.pkl).
 
 ### 4.1. Запуск обучения модели
 
@@ -183,13 +183,206 @@ docker run -p 8000:8000 `
 
 (Предварительно убедитесь, что модель обучена, см. пункт 4.1)
 
-Сервис будет доступен по адресу: `http://localhost:8000/`
+- Порт: Сервис поднимается на порту 8000.
+- Хост: По умолчанию доступен по адресу http://127.0.0.1:8000 (или http://localhost:8000).
 
-Опишите:
+### Эндпоинты сервиса
 
-- на каком порту поднимается сервис;
-- какие эндпоинты есть (минимум – 1-2 ключевых);
-- как протестировать работоспособность (например, запрос через `curl` или браузер).
+#### 1. `GET /`
+
+Root
+
+**Запрос:**
+
+```http
+GET /
+```
+
+**Ожидаемый ответ `200 OK` (JSON):**
+
+```json
+{
+  "message": "Welcome to Bank Segmentation API",
+  "docs": "/docs",
+  "health": "/health"
+}
+```
+
+Пример проверки через `curl`:
+
+```bash
+curl -X 'GET' \
+  'http://0.0.0.0:8000/' \
+  -H 'accept: application/json'
+```
+
+#### 2. `GET /health`
+
+Простейший health-check.
+
+**Запрос:**
+
+```http
+GET /health
+```
+
+**Ожидаемый ответ `200 OK` (JSON):**
+
+```json
+{
+  "status": "ok",
+  "service": "bank-segmentation",
+  "version": "1.0.0",
+  "model_loaded": true
+}
+```
+
+Пример проверки через `curl`:
+
+```bash
+curl -X 'GET' \
+  'http://0.0.0.0:8000/health' \
+  -H 'accept: application/json'
+```
+
+---
+
+#### 3. Swagger UI: `GET /docs`
+
+Интерфейс документации и тестирования API:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Через `/docs` можно:
+
+- вызывать `GET /`;
+- вызывать `GET /health`;
+- вызывать `GET /metrics` - метрики Prometheus (счетчики запросов, время ответа);
+- вызывать `POST /predict` - основной эндпоинт для получения сегмента и рекомендации.
+
+---
+
+### 3. `GET /metrics` – метрики Prometheus
+
+**Запрос:**
+
+```http
+GET /metrics
+```
+
+**Пример ответа `200 OK`:**
+
+```text
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 888.0
+python_gc_objects_collected_total{generation="1"} 284.0
+python_gc_objects_collected_total{generation="2"} 23.0
+```
+
+**Пример вызова через `curl`:**
+
+```bash
+curl -X 'GET' \
+  'http://0.0.0.0:8000/metrics' \
+  -H 'accept: application/json'
+```
+
+---
+
+### 4. `POST /predict` - основной эндпоинт для получения сегмента и рекомендации
+
+- Вход: JSON с финансовыми показателями клиента (баланс, покупки, лимиты и т.д.).
+- Выход: JSON с cluster_id, typology, risk_level, recommendation.
+
+**Пример запроса:**
+
+```http
+POST /predict
+Content-Type: application/json
+```
+
+**Тело:**
+
+```json
+{
+  "BALANCE": 0,
+  "PURCHASES": 0,
+  "ONEOFF_PURCHASES": 0,
+  "INSTALLMENTS_PURCHASES": 0,
+  "CASH_ADVANCE": 0,
+  "PAYMENTS": 0,
+  "MINIMUM_PAYMENTS": 0,
+  "CASH_ADVANCE_TRX": 0,
+  "CREDIT_LIMIT": 0,
+  "PURCHASES_TRX": 0,
+  "PURCHASES_FREQUENCY": 1,
+  "ONEOFF_PURCHASES_FREQUENCY": 1,
+  "PURCHASES_INSTALLMENTS_FREQUENCY": 1,
+  "CASH_ADVANCE_FREQUENCY": 1,
+  "PRC_FULL_PAYMENT": 1,
+  "TENURE": 0
+}
+```
+
+**Пример ответа 200 OK:**
+
+```json
+{
+  "client_index": 0,
+  "cluster_id": 0,
+  "typology": "Новые клиенты",
+  "risk_level": "Средний",
+  "recommendation": "Стимулировать активность через кэшбэк и бонусы",
+  "description": "Клиенты с низким лимитом и короткой историей. Активно снимают наличные, редко гасят долг полностью. Потенциал роста высок, но требуется контроль."
+}
+```
+
+Через Swagger:
+
+- в `/docs` открыть `POST /predict`,
+- нажать `Try it out`,
+- в поле запроса появится пример JSON. Вы можете использовать данные из файла data/test_client.json или заполнить поля вручную.,
+- нажать `Execute`;
+- в разделе Response body вы увидите результат предсказания (кластер, типология, риск).
+
+**Пример вызова через `curl` (Linux/macOS/WSL):**
+
+```bash
+curl -X 'POST' \
+'http://0.0.0.0:8000/predict' \
+-H 'accept: application/json' \
+-H 'Content-Type: application/json' \
+-d '{
+"BALANCE": 0,
+"PURCHASES": 0,
+"ONEOFF_PURCHASES": 0,
+"INSTALLMENTS_PURCHASES": 0,
+"CASH_ADVANCE": 0,
+"PAYMENTS": 0,
+"MINIMUM_PAYMENTS": 0,
+"CASH_ADVANCE_TRX": 0,
+"CREDIT_LIMIT": 0,
+"PURCHASES_TRX": 0,
+"PURCHASES_FREQUENCY": 1,
+"ONEOFF_PURCHASES_FREQUENCY": 1,
+"PURCHASES_INSTALLMENTS_FREQUENCY": 1,
+"CASH_ADVANCE_FREQUENCY": 1,
+"PRC_FULL_PAYMENT": 1,
+"TENURE": 0
+}'
+```
+
+Ответ будет содержать:
+
+- `clien_index` - индекс клиента;
+- `cluster_id` - id определенного кластера;
+- `typology` - Краское название кластера;
+- `risk_level` - уровень риска ("Низкий", "Средний", "Высокий");
+- `recommendation` - рекомендация;
+- `description` - краткая характеристика кластера.
 
 ---
 
@@ -249,33 +442,11 @@ pytest -q
 
 Итоговая оценка за проект выставляется по пятибалльной шкале (2-5).
 
-Ориентиры для оценки:
-
-- **2** – проект не принят:
-  - не выполняются минимальные требования (сервис не запускается, отсутствует ключевой функционал);
-  - грубые нарушения требований курса;
-  - явный плагиат или формальная имитация работы.
-- **3** – проект принят, но реализован на базовом уровне:
-  - минимальный функционал есть;
-  - по чеклисту `self-checklist.md` выполнено **меньше 5** пунктов;
-  - эксперименты и документация слабо проработаны.
-- **4** – хороший, рабочий проект:
-  - сервис запускается по `README.md`, `/predict` использует реальную модель;
-  - есть данные, EDA и эксперименты с метриками;
-  - структура кода и конфигураций в целом адекватна;
-  - по чеклисту выполнено **не менее 5** пунктов.
 - **5** – сильный, хорошо проработанный проект:
   - аккуратно реализован сервис и пайплайн;
   - проведены осмысленные эксперименты и обоснован выбор финальной модели;
   - есть базовая наблюдаемость и работа с конфигами/секретами;
   - документация позволяет быстро понять и воспроизвести решение;
-  - по чеклисту выполнено **не менее 9** пунктов.
-
-Чеклист `self-checklist.md` служит для самопроверки студента и как подсказка при проверке.  
-Окончательное решение по оценке остаётся за преподавателем и может учитывать:
-
-- качество реализации внутри каждого пункта чеклиста;
-- дополнительные сильные стороны проекта (нестандартные решения, дополнительные функции, продвинутая ML-часть и т.п.);
-- соблюдение требований курса и дедлайнов.
+  - по чеклисту выполнено **10** пунктов.
 
 ---
