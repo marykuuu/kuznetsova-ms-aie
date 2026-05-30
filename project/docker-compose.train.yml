@@ -1,21 +1,15 @@
-# project/docker-compose.train.yml
-
 services:
   train-job:
-    # Используем тот же Dockerfile, что и для API
     build: .
     
-    # Временный контейнер для обучения
     container_name: bank-train-job
     
-    # Монтируем тома, чтобы данные брались с вашего ПК, а модель сохранялась на ваш ПК
     volumes:
-      - ./data:/app/data          # Папка с данными (CSV)
-      - ./artifacts:/app/artifacts # Папка, куда сохранится обученная модель
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
       
-    # Переменные окружения берем из .env
+
     env_file:
       - .env
-      
-    # Команда запуска: вместо uvicorn запускаем CLI команду train
+    
     command: ["python", "-m", "src.bank_segmentation.cli", "train"]
