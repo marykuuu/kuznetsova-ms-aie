@@ -1,5 +1,3 @@
-# project/configs/training.yaml
-
 model:
   type: "KMeans"
   params:

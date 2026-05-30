@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 import logging
 import time
@@ -20,11 +21,8 @@ from dotenv import load_dotenv
 
 from contextlib import asynccontextmanager
 
-# Загружаем .env
 load_dotenv()
 
-
-# --- Настройка логирования ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -32,20 +30,18 @@ logging.basicConfig(
 logger = logging.getLogger("bank_segmentation_api")
 
 SERVICE_CONFIG_PATH = Path("configs/service.yaml")
-if SERVICE_CONFIG_PATH.exists():
-    with open(SERVICE_CONFIG_PATH, 'r') as f:
-        SERVICE_CFG = yaml.safe_load(f)
-else:
-    SERVICE_CFG = {
-        "paths": {"artifacts_dir": "artifacts", "model_file": "best_model.pkl", "scaler_file": "scaler.pkl"},
-        "server": {"host": "0.0.0.0", "port": 8000}
-    }
+with open(SERVICE_CONFIG_PATH, 'r') as f:
+    SERVICE_CFG = yaml.safe_load(f)
 
 ARTIFACTS_DIR = Path(SERVICE_CFG['paths']['artifacts_dir'])
 MODEL_PATH = ARTIFACTS_DIR / SERVICE_CFG['paths']['model_file']
 SCALER_PATH = ARTIFACTS_DIR / SERVICE_CFG['paths']['scaler_file']
 
-# --- Инициализация FastAPI ---
+API_HOST = os.getenv("HOST", "0.0.0.0")
+API_PORT = int(os.getenv("PORT", 8000))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Инициализация FastAPI
 app = FastAPI(
     title="Bank Customer Segmentation API",
     version="1.0.0",
@@ -54,7 +50,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# --- Prometheus Metrics (Наблюдаемость) ---
+# Prometheus Metrics
 REQUEST_COUNT = Counter(
     'http_requests_total', 
     'Total HTTP Requests', 
@@ -66,16 +62,10 @@ REQUEST_LATENCY = Histogram(
     ['method', 'endpoint']
 )
 
-# --- Пути к артефактам ---
-# Предполагаем, что артефакты лежат в папке artifacts в корне проекта (откуда запускается uvicorn)
-ARTIFACTS_DIR = Path("artifacts")
-MODEL_PATH = ARTIFACTS_DIR / "best_model.pkl"
-SCALER_PATH = ARTIFACTS_DIR / "scaler.pkl"
-
 # Глобальная переменная для модели
 model_wrapper: Optional[SegmentationModel] = None
 
-# --- Pydantic Models ---
+# Pydantic Models
 
 class ClientData(BaseModel):
     """
@@ -111,15 +101,10 @@ class PredictionResult(BaseModel):
 class ErrorResponse(BaseModel):
     detail: str
 
-# --- Lifecycle Events ---
-
-
-
-# ... (остальные импорты)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Код, который выполняется при ЗАПУСКЕ (Startup)
+
     logger.info("Загрузка модели сегментации...")
     
     if not MODEL_PATH.exists() or not SCALER_PATH.exists():
@@ -135,22 +120,20 @@ async def lifespan(app: FastAPI):
         logger.error(f"Ошибка при загрузке модели: {e}")
         raise e
         
-    yield # Здесь приложение работает
+    yield
     
-    # Код, который выполняется при ОСТАНОВКЕ (Shutdown) - можно оставить пустым
     logger.info("Сервис остановлен.")
 
-# При создании приложения передаем lifespan
+
 app = FastAPI(
     title=SERVICE_CFG['server'].get('title', "Bank Customer Segmentation API"),
     version=SERVICE_CFG['server'].get('version', "1.0.0"),
     description="API для сегментации клиентов банка и оценки кредитного риска.",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan, # <--- ДОБАВЬТЕ ЭТУ СТРОКУ
+    lifespan=lifespan,
 )
 
-# УДАЛИТЕ старый декоратор @app.on_event("startup") и функцию load_model полностью
 
 @app.get("/", tags=["System"])
 def root():
@@ -160,8 +143,7 @@ def root():
         "health": "/health"
     }
 
-# --- Middleware для Метрик ---
-
+# Middleware для Метрик
 @app.middleware("http")
 async def add_metrics(request: Request, call_next):
     start_time = time.time()
@@ -234,12 +216,9 @@ def predict_client(client: ClientData):
     start_time = time.time()
     
     try:
-        # 1. Преобразование Pydantic модели в DataFrame
-        # dict() возвращает словарь, создаем DataFrame с одной строкой
+
         df_input = pd.DataFrame([client.model_dump()])
         
-        # 2. Предсказание
-        # model.predict возвращает список словарей
         results = model_wrapper.predict(df_input)
         
         if not results:
@@ -247,7 +226,6 @@ def predict_client(client: ClientData):
             
         result = results[0]
         
-        # 3. Логирование
         latency = time.time() - start_time
         logger.info(
             f"Prediction made for client. "
@@ -265,5 +243,4 @@ def predict_client(client: ClientData):
         logger.error(f"Internal error during prediction: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
-# Импорт Response для metrics endpoint
 from starlette.responses import Response

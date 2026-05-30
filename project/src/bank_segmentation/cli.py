@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -27,21 +28,24 @@ from .data import load_and_clean_data
 
 app = typer.Typer(help="CLI для сервиса сегментации клиентов банка")
 
-# Константы путей (относительно корня проекта, откуда запускается команда)
-ARTIFACTS_DIR = Path("artifacts")
-MODEL_PATH = ARTIFACTS_DIR / "best_model.pkl"
-SCALER_PATH = ARTIFACTS_DIR / "scaler.pkl"
-DEFAULT_DATA_PATH = Path("data/credit_cards_dataset.csv")
+DATA_PATH = os.getenv("DATA_PATH", "data/credit_cards_dataset.csv")
+ARTIFACTS_DIR = os.getenv("ARTIFACTS_DIR", "artifacts")
+MODEL_NAME = os.getenv("MODEL_NAME", "best_model.pkl")
+SCALER_NAME = os.getenv("SCALER_NAME", "scaler.pkl")
+
+# Формируем полные пути
+MODEL_PATH = Path(ARTIFACTS_DIR) / MODEL_NAME
+SCALER_PATH = Path(ARTIFACTS_DIR) / SCALER_NAME
 
 
-def _ensure_artifacts_dir():
-    """Создает директорию artifacts, если она не существует."""
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+# def _ensure_artifacts_dir():
+#     """Создает директорию artifacts, если она не существует."""
+#     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @app.command()
 def train(
-    data_path: str = typer.Option(str(DEFAULT_DATA_PATH), help="Путь к CSV файлу с данными."),
+    data_path: str = typer.Option(str(DATA_PATH), help="Путь к CSV файлу с данными."),
 ):
     """
     Обучить модель сегментации и сохранить артефакты (модель + скалер).
@@ -68,7 +72,7 @@ def train(
         typer.echo(f"[Ошибка] Ошибка при обучении: {e}", err=True)
         raise typer.Exit(code=1)
 
-    _ensure_artifacts_dir()
+    # _ensure_artifacts_dir()
     
     typer.echo(f"[INFO] Сохранение артефактов в {ARTIFACTS_DIR}...")
     try:

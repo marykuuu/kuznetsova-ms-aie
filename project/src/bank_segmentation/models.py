@@ -18,12 +18,11 @@ def load_training_config():
         logger.warning(f"Config file {CONFIG_PATH} not found. Using defaults.")
         return {
             "model": {"params": {"n_clusters": 5, "init": "k-means++", "n_init": 10, "random_state": 42}},
-            "features": {"selected_features": []} # Fallback
+            "features": {"selected_features": []}
         }
     with open(CONFIG_PATH, 'r') as f:
         return yaml.safe_load(f)
 
-# Загружаем конфиг при импорте модуля
 TRAINING_CFG = load_training_config()
 BEST_PARAMS = TRAINING_CFG['model']['params']
 SELECTED_FEATURES = TRAINING_CFG['features']['selected_features']
@@ -33,32 +32,32 @@ CLUSTER_PROFILES = {
     0: {
         "typology": "Новые клиенты",
         "risk_level": "Средний",
-        "recommendation": "Увеличить лимит при хорошей истории",
-        "description": "Низкий кредитный лимит, часто снимают наличные, редко гасят долг полностью."
+        "recommendation": "Стимулировать активность через кэшбэк и бонусы",
+        "description": "Клиенты с низким лимитом и короткой историей. Активно снимают наличные, редко гасят долг полностью. Потенциал роста высок, но требуется контроль."
     },
     1: {
-        "typology": "Наличные",
+        "typology": "Предпочитающие наличные",
         "risk_level": "Высокий",
-        "recommendation": "Осторожно с кредитованием",
-        "description": "Используют карту как источник наличных, высокие лимиты, но платят только минимум."
+        "recommendation": "Осторожно с кредитованием, ограничить снятие наличных, предложить перевод на дебетовую карту",
+        "description": "Используют карту как источник наличных. Минимальные покупки, максимум снятий. Платят только минимум. Высокий риск ухода в просрочку."
     },
     2: {
-        "typology": "Ответственные клиенты",
+        "typology": "Премиальные клиенты",
         "risk_level": "Низкий",
-        "recommendation": "Одобрить кредит, увеличить лимит",
+        "recommendation": "Одобрить кредит, увеличить лимит, предложить премиальную карту, высокий лимит, эксклюзивные услуги",
         "description": "Активные покупки, рассрочки, почти всегда гасят долг полностью. Идеальные клиенты."
     },
     3: {
         "typology": "Любители рассрочки",
         "risk_level": "Средний",
-        "recommendation": "Предлагать рассрочки",
-        "description": "Лояльные клиенты, покупают в рассрочку, но платят только минимум. Приносят доход процентами."
+        "recommendation": "Активно предлагать товары в рассрочку, партнерские программы",
+        "description": "Лояльные клиенты. Покупают много и часто, но почти всегда в рассрочку. Платят только минимальный платеж. Приносят доход процентами. Чувствительны к условиям рассрочки."
     },
     4: {
         "typology": "Активные пользователи",
-        "risk_level": "Средний/Высокий",
-        "recommendation": "Индивидуальный подход",
-        "description": "Максимально используют карту (покупки + наличные), высокий лимит, но долги не гасят полностью."
+        "risk_level": "Высокий",
+        "recommendation": "Индивидуальный мониторинг, предложение рефинансирования долга",
+        "description": "Тратят много и снимают много. Используют карту на пределе лимита. Платят минимум. Приносят высокий доход (проценты + комиссии), но требуют жесткого контроля риска."
     }
 }
 
@@ -81,8 +80,6 @@ class SegmentationModel:
         
         logger.info(f"Модель обучена. Центры кластеров: {self.model.cluster_centers_.shape}")
         
-        # Опционально: здесь можно пересчитать CLUSTER_PROFILES на основе реальных центров,
-        # чтобы сопоставить label 0 с правильным описанием.
         self._map_clusters_to_profiles(df, X_scaled)
 
     def _map_clusters_to_profiles(self, df_raw: pd.DataFrame, X_scaled: np.ndarray):
@@ -94,7 +91,6 @@ class SegmentationModel:
         df_temp = df_raw.copy()
         df_temp['cluster'] = labels
         
-        # Выводим средние значения для каждого кластера в лог для проверки
         means = df_temp.groupby('cluster')[SELECTED_FEATURES].mean()
         logger.info(f"Centroids analysis:\n{means}")
         # На основе этого лога вы можете поменять ключи в CLUSTER_PROFILES выше, если нужно.

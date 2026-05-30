@@ -1,7 +1,7 @@
 # project/configs/service.yaml
 
 paths:
-  artifacts_dir: "artifacts"
+  artifacts_dir: "artifacts" # Можно хардкодить, так как это внутренняя структура проекта
   model_file: "best_model.pkl"
   scaler_file: "scaler.pkl"
 

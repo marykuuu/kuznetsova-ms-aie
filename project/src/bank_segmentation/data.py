@@ -4,6 +4,7 @@ import logging
 import yaml
 from pathlib import Path
 from typing import Optional
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +19,9 @@ def load_data_config():
 DATA_CFG = load_data_config()
 FILL_MEDIAN_COLS = DATA_CFG['fill_median_cols']
 
-DEFAULT_DATA_PATH = "data/credit_cards_dataset.csv"
+DATA_PATH = os.getenv("DATA_PATH", "data/credit_cards_dataset.csv")
 
-def load_and_clean_data(file_path: Optional[str] = DEFAULT_DATA_PATH, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+def load_and_clean_data(file_path: Optional[str] = DATA_PATH, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
     """
     Загружает данные из CSV или принимает готовый DataFrame.
     Выполняет базовую очистку:
