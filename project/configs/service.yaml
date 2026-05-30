@@ -1,0 +1,12 @@
+# project/configs/service.yaml
+
+paths:
+  artifacts_dir: "artifacts"
+  model_file: "best_model.pkl"
+  scaler_file: "scaler.pkl"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  title: "Bank Customer Segmentation API"
+  version: "1.0.0"

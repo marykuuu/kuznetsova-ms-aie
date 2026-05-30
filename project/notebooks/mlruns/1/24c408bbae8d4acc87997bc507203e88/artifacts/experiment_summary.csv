@@ -1,5 +1,0 @@
-model,silhouette,davies_bouldin,calinski_harabasz,params
-Baseline_KMeans,0.293751155045553,1.3647184056015742,3031.9682281831474,{'n_clusters': 4}
-KMeans_Tuned,0.3093353780705341,1.2136103150059232,3020.541924611946,"{'init': 'k-means++', 'n_clusters': 5, 'n_init': 10}"
-DBSCAN,0.26872254388322736,0.7984672914310943,34.99208947896335,"{'eps': 1.0, 'min_samples': 15}"
-Agglomerative_Ward,0.2762958269072885,1.3045072526715829,2648.790765145038,"{'n_clusters': 5, 'linkage': 'ward'}"

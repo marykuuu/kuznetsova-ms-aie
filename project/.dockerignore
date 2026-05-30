@@ -1,0 +1,37 @@
+# project/.dockerignore
+
+# Git
+.git
+.gitignore
+
+# Python virtual environment
+.venv
+env
+venv
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python cache
+__pycache__
+*.py[cod]
+*$py.class
+.Python
+
+# Project specific artifacts (мы будем собирать их внутри или монтировать, но не копировать старые)
+artifacts/
+data/*.csv
+*.log
+reports/
+
+# Env files (секреты не должны быть в образе!)
+.env
+.env.example
+
+# Docs
+README.md
+overview.md
+report.md

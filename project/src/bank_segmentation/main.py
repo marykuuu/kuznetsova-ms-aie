@@ -3,8 +3,8 @@ import pandas as pd
 
 # 1. Загрузка и предобработка данных
 # Предположим, df - это ваш исходный датафрейм
-from src.data import load_data, clean_data
-from src.features import get_preprocessed_and_scaled_data
+from project.src.bank_segmentation.data import load_data, clean_data
+from project.src.bank_segmentation.features import get_preprocessed_and_scaled_data
 
 # Очищаем данные (предполагается, что у вас есть функция clean_data, если нет, нужно добавить простую очистку от NaN)
 # df.dropna(inplace=True) # Простой пример очистки
@@ -14,11 +14,11 @@ df = clean_data(df)
 X_scaled, scaler = get_preprocessed_and_scaled_data(df, fit_scaler=True)
 
 # Сохраняем скалер для будущего инференса
-from src.features import save_scaler
+from project.src.bank_segmentation.features import save_scaler
 save_scaler(scaler, "artifacts/scaler.pkl")
 
 # 2. Обучение и сравнение моделей
-from src.models import train_and_compare_models, select_best_model, generate_cluster_profiles
+from project.src.bank_segmentation.models import train_and_compare_models, select_best_model, generate_cluster_profiles
 
 # Обучаем модели
 results = train_and_compare_models(X_scaled, n_clusters=4)
@@ -42,7 +42,7 @@ print("Cluster Profiles:")
 print(profiles)
 
 # 4. Инференс для нового клиента
-from src.models import predict_client_segment, load_scaler
+from project.src.bank_segmentation.models import predict_client_segment, load_scaler
 
 # Пример нового клиента (одна строка)
 new_client_data = pd.DataFrame([{

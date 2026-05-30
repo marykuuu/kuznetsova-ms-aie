@@ -1,0 +1,37 @@
+# project/configs/training.yaml
+
+model:
+  type: "KMeans"
+  params:
+    n_clusters: 5
+    init: "k-means++"
+    n_init: 10
+    random_state: 42
+
+features:
+  log_cols:
+    - "BALANCE"
+    - "PURCHASES"
+    - "ONEOFF_PURCHASES"
+    - "INSTALLMENTS_PURCHASES"
+    - "CASH_ADVANCE"
+    - "PAYMENTS"
+    - "MINIMUM_PAYMENTS"
+    - "CASH_ADVANCE_TRX"
+    - "CREDIT_LIMIT"
+    - "PURCHASES_TRX"
+  
+  selected_features:
+    - "PURCHASES"
+    - "CASH_ADVANCE"
+    - "INSTALLMENTS_PURCHASES"
+    - "PURCHASES_FREQUENCY"
+    - "CASH_ADVANCE_FREQUENCY"
+    - "PRC_FULL_PAYMENT"
+    - "CREDIT_LIMIT"
+    - "TENURE"
+
+data:
+  fill_median_cols:
+    - "CREDIT_LIMIT"
+    - "MINIMUM_PAYMENTS"
